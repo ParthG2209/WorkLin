@@ -130,6 +130,24 @@ export const getPagesByWorkspace = async (workspaceId: string) => {
   }
 };
 
+export const getPagesByParent = async (parentId: string) => {
+  try {
+    const q = query(
+      collection(db, PAGES_COLLECTION),
+      where('parentId', '==', parentId),
+      orderBy('updatedAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    const pages = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as any[]; // Cast to any to avoid strict type checks on the spread
+    return { pages, error: null };
+  } catch (error: any) {
+    return { pages: [], error: error.message };
+  }
+};
+
 export const updatePage = async (pageId: string, updates: Partial<Page>) => {
   try {
     const pageRef = doc(db, PAGES_COLLECTION, pageId);
