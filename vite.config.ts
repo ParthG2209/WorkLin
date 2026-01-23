@@ -18,8 +18,8 @@ export default defineConfig({
     react() // This plugin enables React features like JSX and Fast Refresh (hot reload)
   ],
 
-  // Base URL for the app
-  base: '/',
+  // Base URL for the app - using relative path fixes many Vercel deployment issues
+  base: './',
 
   // Build configuration
   build: {
