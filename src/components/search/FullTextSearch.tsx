@@ -3,7 +3,6 @@ import { Search, Loader2, FileText, X, TrendingUp, Clock, Sparkles } from 'lucid
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card } from '../ui/card';
-import { EmptyState } from '../ui/empty-state';
 import { 
   searchWorkspace, 
   getSearchSuggestions, 
@@ -394,24 +393,13 @@ export const FullTextSearch = () => {
 
         {/* No Results */}
         {results.length === 0 && !loading && !error && query && (
-          <EmptyState
-            title="No results found"
-            description="Try different keywords or check spelling."
-            actionLabel="Clear search"
-            onAction={() => {
-              setQuery('');
-              setResults([]);
-              inputRef.current?.focus();
-            }}
-            secondaryActionLabel="Show all pages"
-            onSecondaryAction={() => {
-              setQuery('');
-              setResults([]);
-              navigate('/app');
-            }}
-            icon={<Search size={24} />}
-            className="py-12"
-          />
+          <div className="text-center text-muted-foreground py-12">
+            <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">No results found</p>
+            <p className="text-sm mt-2">
+              Try adjusting your search query or check for typos
+            </p>
+          </div>
         )}
 
         {/* Empty State */}
