@@ -336,13 +336,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Login page with demo credentials
 - [x] Responsive design (mobile-friendly)
 - [x] Dark mode support
-- [ ] Real-time collaboration (Yjs + Render) - See Issue #21
-- [ ] AI writing assistant - See Issue #23
-- [ ] Database views - See Issue #14
-- [ ] Comments system - See Issue #12
-- [ ] Page templates - See Issue #13
-- [ ] Advanced search - See Issue #8, #19
-- [ ] Export functionality - See Issue #16
+- [X] Real-time collaboration (Yjs + Render) - See Issue #21
+- [X] AI writing assistant - See Issue #23
+- [X] Database views - See Issue #14
+- [X] Comments system - See Issue #12
+- [X] Page templates - See Issue #13
+- [X] Advanced search - See Issue #8, #19
+- [X] Export functionality - See Issue #16
 - [ ] Mobile app/PWA - See Issue #25
 
 **Check [GITHUB_ISSUES.md](GITHUB_ISSUES.md) for 30 open issues ready for contributors!**
