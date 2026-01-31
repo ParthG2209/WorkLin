@@ -29,10 +29,9 @@ import { FormulaProperty } from './database/FormulaProperty';
 import { DatabaseProperty, RelationProperty as RelationType, RollupProperty as RollupType, FormulaProperty as FormulaType } from '../types/database';
 
 // ▶ Presence imports
-import { registerPresence } from '../lib/firebase/presence';
 import { PresenceIndicator } from './collaboration/PresenceIndicator';
+import { setPresencePhoto } from '../lib/firebase/presence';
 import { subscribeToAuth } from '../lib/firebase/auth';
-import { getRandomUserColor } from '../lib/collaboration/cursor-sync';
 
 interface PageEditorProps {
   page: Page | undefined;
@@ -45,11 +44,10 @@ interface PageEditorProps {
   onUpdatePage?: (pageId: string, updates: Partial<Page>) => void;
 }
 
-
-// Inner component — lives *inside* <CollaborationProvider> so it can access
-// the collaboration context if needed, and so presence registration has the
-// same lifecycle as the Yjs session.
-
+// ---------------------------------------------------------------------------
+// Inner component — lives inside <CollaborationProvider> so it can call
+// useCollaboration() and access the Yjs provider / awareness.
+// ---------------------------------------------------------------------------
 
 const PageEditorInner: React.FC<PageEditorProps> = ({
   page,
@@ -68,58 +66,20 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
   const [databasePages, setDatabasePages] = useState<Page[]>([]);
   const [isLoadingViews, setIsLoadingViews] = useState(false);
 
-  // ▶ Presence: track the authenticated user so we can register / unregister
-  const [currentUser, setCurrentUser] = useState<{ uid: string; displayName: string | null; photoURL: string | null } | null>(null);
-  // Stable colour for the session (mirrors what CollaborationProvider does for Yjs awareness)
-  const userColor = useRef(getRandomUserColor()).current;
-  // Holds the teardown function returned by registerPresence
-  const presenceTeardownRef = useRef<(() => Promise<void>) | null>(null);
+  // ▶ Presence: once auth resolves, push the user's photoURL into awareness
+  //   so PresenceIndicator can render actual avatar photos.
+  //   CollaborationProvider already set name + color via cursor-sync;
+  //   this just adds the missing photoURL field.
+  const { provider } = useCollaboration();
 
-  // Listen to Firebase Auth so we know who is logged in
   useEffect(() => {
     const unsubscribe = subscribeToAuth((user) => {
-      if (user) {
-        setCurrentUser({ uid: user.uid, displayName: user.displayName, photoURL: user.photoURL });
-      } else {
-        setCurrentUser(null);
+      if (user && provider?.awareness) {
+        setPresencePhoto(provider.awareness, user.photoURL);
       }
     });
     return () => unsubscribe();
-  }, []);
-
-  // Register presence whenever we have both a page and an authenticated user.
-  // Tear down on unmount OR when pageId / user changes.
-  useEffect(() => {
-    if (!page?.id || !currentUser) return;
-
-    let active = true; // guard against the async teardown firing after a re-render
-
-    const setup = async () => {
-      const teardown = await registerPresence(
-        page.id,
-        currentUser.uid,
-        currentUser.displayName || currentUser.photoURL || 'Anonymous',
-        currentUser.photoURL,
-        userColor
-      );
-      if (active) {
-        presenceTeardownRef.current = teardown;
-      } else {
-        // Component already unmounted while we were awaiting — clean up immediately
-        await teardown();
-      }
-    };
-
-    setup();
-
-    return () => {
-      active = false;
-      if (presenceTeardownRef.current) {
-        presenceTeardownRef.current();
-        presenceTeardownRef.current = null;
-      }
-    };
-  }, [page?.id, currentUser?.uid, userColor]);
+  }, [provider]);
 
   // Drag and Drop sensors
   const sensors = useSensors(
@@ -151,7 +111,6 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
   const handleSwitchView = async (type: ViewType) => {
     if (!page) return;
 
-    // Check if view already exists
     let newView = page.views?.find(v => v.type === type);
     let updatedViews = page.views || [];
 
@@ -164,10 +123,8 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
       updatedViews = [...updatedViews, newView];
     }
 
-    // Optimistic update
     setCurrentView(newView);
 
-    // Persist
     try {
       const result = await updatePage(page.id, {
         views: updatedViews,
@@ -239,7 +196,6 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
     if (oldIndex !== -1 && newIndex !== -1) {
       const reorderedBlocks = arrayMove(page.blocks, oldIndex, newIndex);
 
-      // Update page with new block order
       if (onUpdatePage) {
         onUpdatePage(page.id, { blocks: reorderedBlocks });
         toast({
@@ -269,7 +225,6 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
     );
   }
 
-  // Cast properties to strongly typed DatabaseProperty record
   const properties = page.properties as Record<string, DatabaseProperty> | undefined;
 
   return (
@@ -288,7 +243,7 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
               />
             </div>
           ) : (
-            <div className="h-20 sm:h-24 w-full" /> // Spacer for no-cover pages
+            <div className="h-20 sm:h-24 w-full" />
           )}
 
           {/* Cover Controls - Top Right */}
@@ -371,10 +326,10 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
               </div>
             </div>
 
-            {/* Header actions row: Presence avatars → History → Export */}
+            {/* Header actions: Presence avatars → History → Export */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* ▶ Presence indicator — shows other users' avatars */}
-              <PresenceIndicator pageId={page.id} currentUserId={currentUser?.uid ?? null} />
+              {/* ▶ Presence indicator — zero props, reads from Yjs context */}
+              <PresenceIndicator />
 
               <button
                 onClick={() => setShowHistory(true)}
@@ -459,7 +414,6 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
                 )}
               </div>
             ) : (
-              // Default Block Editor
               <>
                 {page.blocks.length === 0 ? (
                   <EmptyState
@@ -502,7 +456,7 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
                   </DndContext>
                 )}
 
-                {/* Add Block Button - Always visible at bottom */}
+                {/* Add Block Button */}
                 <div className="mt-6 sm:mt-8 mb-8 sm:mb-12">
                   <button
                     onClick={() => handleAddBlock('paragraph')}
@@ -541,15 +495,12 @@ const PageEditorInner: React.FC<PageEditorProps> = ({
   );
 };
 
-
-// Public export — wraps the inner component with CollaborationProvider exactly
-// as the original did, keeping the public API identical.
-
+// ---------------------------------------------------------------------------
+// Public export — wraps the inner component in CollaborationProvider exactly
+// as the original did.  Public API is unchanged.
+// ---------------------------------------------------------------------------
 
 export const PageEditor: React.FC<PageEditorProps> = (props) => {
-  // If there's no page yet we still need to render the empty state,
-  // but CollaborationProvider requires a pageId.  Use a placeholder that
-  // won't match any real room — no WebSocket will actually open.
   const pageId = props.page?.id ?? '__no-page__';
 
   return (
