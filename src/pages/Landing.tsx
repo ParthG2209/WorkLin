@@ -28,6 +28,8 @@ import { motion } from 'framer-motion';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { Logo, LogoIcon } from '../components/Logo';
 
+// The Landing page is the first thing users see. 
+// It features a hero section with a call to action, feature highlights, and a footer.
 const BentoCard = ({ 
   icon: Icon, 
   title, 
@@ -79,25 +81,59 @@ export const Landing: React.FC = () => {
   const { isDark, toggleDarkMode } = useDarkMode();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 selection:bg-blue-500/30 overflow-x-hidden">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 dark:border-slate-800/50 backdrop-blur-xl bg-white/60 dark:bg-slate-950/60">
-        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-          <Logo size={36} />
-          
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors">Features</a>
-            <a href="#workflow" className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors">Workflow</a>
-            <a href="https://github.com/fyiclub-vitb/WorkLin" className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors">Open Source</a>
-          </nav>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Header: Contains Logo, Dark Mode toggle, GitHub link, and Login button */}
+      <header className="container mx-auto px-6 py-6 flex items-center justify-between backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 sticky top-0 z-50 border-b border-gray-200/50 dark:border-slate-800/50">
+        <Logo size={44} />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all hover:scale-105"
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <a
+            href="https://github.com/fyiclub-vitb/WorkLin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all hover:scale-105"
+          >
+            <Github size={18} />
+            <span className="hidden sm:inline font-medium">GitHub</span>
+          </a>
+          <Link
+            to="/login"
+            className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105"
+          >
+            Get Started
+          </Link>
+        </div>
+      </header>
 
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleDarkMode}
-              className="p-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-900/50 backdrop-blur-lg transition-colors border border-transparent hover:border-white/10"
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+      {/* Hero Section: The main headline and primary call-to-action */}
+      <section className="container mx-auto px-6 py-24 md:py-32 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-8">
+            <Zap size={16} className="text-blue-600 dark:text-blue-400" />
+            Open Source • Free Forever
+          </div>
+          <h1 className="text-6xl md:text-8xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+            Your workspace,
+            <br />
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              reimagined
+            </span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+            WorkLin is an open-source Notion alternative. Create pages, organize your thoughts,
+            and collaborate with your team—all in one beautiful workspace.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               to="/login"
               className="hidden sm:block px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-500/20"
@@ -105,6 +141,18 @@ export const Landing: React.FC = () => {
               Get Started
             </Link>
           </div>
+        </motion.div>
+      </section>
+
+      {/* Features Section: Highlights key capabilities like 'Lightning Fast' and 'Privacy First' */}
+      <section className="container mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Everything you need to stay organized
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400">
+            Powerful features, beautiful design, open source
+          </p>
         </div>
       </header>
 
@@ -642,23 +690,25 @@ export const Landing: React.FC = () => {
             <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-12">
               Built with modern technology
             </h3>
-            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-              <div className="flex items-center gap-2">
-                <Code className="w-6 h-6" />
-                <span className="font-bold text-xl">React</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Database className="w-6 h-6" />
-                <span className="font-bold text-xl">Firebase</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Layout className="w-6 h-6" />
-                <span className="font-bold text-xl">Tailwind</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Cpu className="w-6 h-6" />
-                <span className="font-bold text-xl">TypeScript</span>
-              </div>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Real-time collaboration coming soon. Share workspaces and work together seamlessly.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Open Source Section: Emphasizes the open-source nature of the project */}
+      <section className="container mx-auto px-6 py-20">
+        <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-12 md:p-16 text-center text-white overflow-hidden">
+          <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="relative z-10"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Code size={40} className="text-white" />
             </div>
           </div>
         </section>
